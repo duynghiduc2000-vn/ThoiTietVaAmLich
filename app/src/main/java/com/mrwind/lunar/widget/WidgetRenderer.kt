@@ -6,7 +6,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
@@ -77,16 +76,14 @@ object WidgetRenderer {
         val solarText = LunarCalendar.formatSolarLine(cal)
         val lunarText = LunarCalendar.formatLunarLine(cal)
 
-        // Dòng chính phía trên luôn hiển thị Âm lịch
         views.setTextViewText(R.id.tv_lunar_line, lunarText)
         views.setTextViewTextSize(R.id.tv_lunar_line, TypedValue.COMPLEX_UNIT_SP, config.lunarFontSizeSp)
 
-        // Hàng dưới: bên trái hiển thị rõ nội dung việc cần làm (luân phiên mỗi 1 phút)
         val todoText = if (config.todos.isNotEmpty()) {
             val minuteIndex = (System.currentTimeMillis() / 60_000L).toInt()
             val idx = Math.floorMod(minuteIndex, config.todos.size)
             val todo = config.todos[idx]
-            "${todo.time} • ${todo.title}"
+            "${todo.time} •${todo.title}"
         } else {
             ""
         }
@@ -114,7 +111,6 @@ object WidgetRenderer {
         views.setTextViewText(R.id.tv_location, config.locationName.ifBlank { "Nghị Đức" })
         views.setTextViewText(R.id.tv_weather_desc, if (config.showWeatherEffect) config.weatherDescDisplay else "")
 
-        // Chữ ký góc phải dưới, dùng font tiếng Việt rõ nét
         if (config.signature.isNotBlank()) {
             views.setViewVisibility(R.id.tv_signature, View.VISIBLE)
             views.setTextViewText(R.id.tv_signature, config.signature)
