@@ -15,7 +15,7 @@
         android:gravity="top"
         android:orientation="vertical">
 
-        <!-- Khối trên: Thứ, Âm lịch, Đồng hồ (trái) + Thời tiết (phải) -->
+        <!-- Khối trên: Thứ, Âm lịch (trái) + Nhiệt độ (phải) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -53,75 +53,86 @@
                     android:text="Âm: 17/10 • Ngày Quý Mão"
                     android:textColor="#E0E4EC"
                     android:textSize="14sp" />
-
-                <TextClock
-                    android:id="@+id/clock_main"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif"
-                    android:format12Hour="HH:mm"
-                    android:format24Hour="HH:mm"
-                    android:maxLines="1"
-                    android:textColor="#FFFFFF"
-                    android:textSize="30sp"
-                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.85"
-                android:gravity="end|top"
-                android:orientation="vertical">
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal">
 
-                <LinearLayout
+                <ImageView
+                    android:id="@+id/iv_weather_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="4dp"
+                    android:contentDescription="Thời tiết"
+                    android:src="@android:drawable/ic_menu_day" />
+
+                <TextView
+                    android:id="@+id/tv_temp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:fontFamily="sans-serif"
+                    android:text="31°C"
+                    android:textColor="#FFFFFF"
+                    android:textSize="21sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
 
-                    <ImageView
-                        android:id="@+id/iv_weather_icon"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_marginEnd="4dp"
-                        android:contentDescription="Thời tiết"
-                        android:src="@android:drawable/ic_menu_day" />
+        <!-- Khối giữa: Đồng hồ (trái) ngang hàng Tên địa điểm + Mô tả thời tiết (phải) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/tv_temp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif"
-                        android:text="28°C"
-                        android:textColor="#FFFFFF"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+            <TextClock
+                android:id="@+id/clock_main"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.25"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif"
+                android:format12Hour="HH:mm"
+                android:format24Hour="HH:mm"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.95"
+                android:gravity="end|center_vertical"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/tv_location"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
                     android:ellipsize="end"
                     android:fontFamily="sans-serif"
                     android:maxLines="1"
                     android:text="Nghị Đức"
                     android:textColor="#FFFFFF"
-                    android:textSize="13sp"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tv_weather_desc"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
                     android:ellipsize="end"
                     android:fontFamily="sans-serif"
                     android:maxLines="1"
-                    android:text="Nhiều mây"
+                    android:text="Ít mây"
                     android:textColor="#CFD5E0"
                     android:textSize="12sp" />
             </LinearLayout>
