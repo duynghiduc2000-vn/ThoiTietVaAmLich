@@ -10,7 +10,7 @@
         android:allowBackup="true"
         android:label="Thời tiết và Âm lịch"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
+        android:theme="@android:style/Theme.Material.NoActionBar">
 
         <activity
             android:name=".MainActivity"
