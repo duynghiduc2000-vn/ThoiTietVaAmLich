@@ -8,7 +8,8 @@ import java.net.URL
 
 data class WeatherResult(
     val tempText: String,
-    val descText: String
+    val descText: String,
+    val weatherCode: Int
 )
 
 object WeatherFetcher {
@@ -33,7 +34,8 @@ object WeatherFetcher {
                 if (!temp.isNaN()) {
                     WeatherResult(
                         tempText = "${Math.round(temp)}°C",
-                        descText = mapWeatherCode(code)
+                        descText = mapWeatherCode(code),
+                        weatherCode = code
                     )
                 } else null
             } else {
@@ -45,7 +47,7 @@ object WeatherFetcher {
         }
     }
 
-    private fun mapWeatherCode(code: Int): String {
+    fun mapWeatherCode(code: Int): String {
         return when (code) {
             0 -> "Trời quang"
             1, 2 -> "Ít mây"
@@ -55,7 +57,7 @@ object WeatherFetcher {
             61, 63, 65 -> "Có mưa"
             80, 81, 82 -> "Mưa rào"
             95, 96, 99 -> "Giông bão"
-            else -> "Thời tiết ổn định"
+            else -> "Trời quang"
         }
     }
 }
