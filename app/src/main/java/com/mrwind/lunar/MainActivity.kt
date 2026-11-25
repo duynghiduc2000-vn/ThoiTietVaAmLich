@@ -37,8 +37,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DarkColorScheme
-import androidx.compose.material3.LightColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -47,6 +45,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -115,13 +115,13 @@ class MainActivity : ComponentActivity() {
                 ?: Color(0xFF0284C7)
 
             val colorScheme = if (isDark) {
-                DarkColorScheme.copy(
+                darkColorScheme(
                     primary = accent,
                     background = Color(0xFF111014),
                     surface = Color(0xFF1A1820)
                 )
             } else {
-                LightColorScheme.copy(
+                lightColorScheme(
                     primary = accent,
                     background = Color(0xFFF4F5F8),
                     surface = Color(0xFFFFFFFF)
@@ -201,7 +201,6 @@ private fun LunarWeatherScreen(
             .padding(horizontal = 14.dp, vertical = 18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Tiêu đề chính
         Column {
             Text(
                 text = "Thời tiết và Âm lịch",
@@ -702,7 +701,6 @@ private fun LunarWeatherScreen(
             }
         }
 
-        // Chân trang bản quyền
         Text(
             text = "Được tạo ra bởi Mr.Wind - Xiaomi Community Việt Nam",
             fontSize = 11.sp,
@@ -759,7 +757,7 @@ private fun WidgetPreviewBox(
         else -> Brush.linearGradient(listOf(Color(0xCC242632), Color(0xD915161D)))
     }
 
-    val textColor = if (config.widgetStyle == "FROSTED_LIGHT") Color(0xFF111827) else Color.WHITE
+    val textColor = if (config.widgetStyle == "FROSTED_LIGHT") Color(0xFF111827) else Color.White
     val subTextColor = if (config.widgetStyle == "FROSTED_LIGHT") Color(0xFF374151) else Color(0xFFDCE2EC)
 
     Box(
