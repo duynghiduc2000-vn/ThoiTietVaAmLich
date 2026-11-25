@@ -6,7 +6,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.view.Gravity
+import android.graphics.Typeface
+import android.util.TypedValue
+import android.view.View
 import android.widget.RemoteViews
 import com.mrwind.lunar.MainActivity
 import com.mrwind.lunar.R
@@ -75,13 +77,25 @@ object WidgetRenderer {
         val solarText = LunarCalendar.formatSolarLine(cal)
         val lunarText = LunarCalendar.formatLunarLine(cal)
 
-        val line2Text = if (config.todos.isNotEmpty()) {
+        // Dòng chính phía trên luôn hiển thị Âm lịch
+        views.setTextViewText(R.id.tv_lunar_line, lunarText)
+        views.setTextViewTextSize(R.id.tv_lunar_line, TypedValue.COMPLEX_UNIT_SP, config.lunarFontSizeSp)
+
+        // Hàng dưới: bên trái hiển thị rõ nội dung việc cần làm (luân phiên mỗi 1 phút)
+        val todoText = if (config.todos.isNotEmpty()) {
             val minuteIndex = (System.currentTimeMillis() / 60_000L).toInt()
             val idx = Math.floorMod(minuteIndex, config.todos.size)
             val todo = config.todos[idx]
-            "Việc (${idx + 1}/${config.todos.size}) • ${todo.time}:${todo.title}"
+            "${todo.time} • ${todo.title}"
         } else {
-            lunarText
+            ""
+        }
+
+        if (todoText.isNotBlank()) {
+            views.setViewVisibility(R.id.tv_todo_bottom, View.VISIBLE)
+            views.setTextViewText(R.id.tv_todo_bottom, todoText)
+        } else {
+            views.setViewVisibility(R.id.tv_todo_bottom, View.GONE)
         }
 
         val clockFormat = if (config.showClockSeconds) "HH:mm:ss" else "HH:mm"
@@ -89,34 +103,30 @@ object WidgetRenderer {
         views.setCharSequence(R.id.clock_main, "setFormat12Hour", clockFormat)
 
         views.setTextViewText(R.id.tv_solar_date, solarText)
-        views.setTextViewText(R.id.tv_lunar_or_todo, line2Text)
-        views.setTextViewTextSize(
-            R.id.tv_lunar_or_todo,
-            android.util.TypedValue.COMPLEX_UNIT_SP,
-            config.lunarFontSizeSp
-        )
 
         val iconText = if (config.showWeatherEffect) "${weatherEmoji(config.weatherDescDisplay)} " else ""
         views.setTextViewText(R.id.tv_temp, "$iconText${config.tempDisplay}")
         views.setImageViewResource(R.id.iv_weather_icon, weatherIconRes(config.weatherDescDisplay))
         views.setViewVisibility(
             R.id.iv_weather_icon,
-            if (config.showWeatherEffect) android.view.View.VISIBLE else android.view.View.GONE
+            if (config.showWeatherEffect) View.VISIBLE else View.GONE
         )
         views.setTextViewText(R.id.tv_location, config.locationName.ifBlank { "Nghị Đức" })
         views.setTextViewText(R.id.tv_weather_desc, if (config.showWeatherEffect) config.weatherDescDisplay else "")
 
+        // Chữ ký góc phải dưới, dùng font tiếng Việt rõ nét
         if (config.signature.isNotBlank()) {
-            views.setViewVisibility(R.id.tv_signature, android.view.View.VISIBLE)
+            views.setViewVisibility(R.id.tv_signature, View.VISIBLE)
             views.setTextViewText(R.id.tv_signature, config.signature)
+            views.setTextViewTextSize(R.id.tv_signature, TypedValue.COMPLEX_UNIT_SP, 12f)
         } else {
-            views.setViewVisibility(R.id.tv_signature, android.view.View.GONE)
+            views.setViewVisibility(R.id.tv_signature, View.GONE)
         }
 
         val isLightFrost = config.widgetStyle == "FROSTED_LIGHT"
         val primaryTextColor = if (isLightFrost) Color.parseColor("#111827") else Color.WHITE
         val secondaryTextColor = if (isLightFrost) Color.parseColor("#374151") else Color.parseColor("#DCE2EC")
-        val sigTextColor = if (isLightFrost) Color.parseColor("#4B5563") else Color.parseColor("#B8C2D4")
+        val sigTextColor = if (isLightFrost) Color.parseColor("#374151") else Color.parseColor("#E2E8F0")
 
         when (config.widgetStyle) {
             "TRANSPARENT" -> {
@@ -136,10 +146,11 @@ object WidgetRenderer {
 
         views.setTextColor(R.id.clock_main, primaryTextColor)
         views.setTextColor(R.id.tv_solar_date, primaryTextColor)
-        views.setTextColor(R.id.tv_lunar_or_todo, secondaryTextColor)
+        views.setTextColor(R.id.tv_lunar_line, secondaryTextColor)
         views.setTextColor(R.id.tv_temp, primaryTextColor)
         views.setTextColor(R.id.tv_location, primaryTextColor)
         views.setTextColor(R.id.tv_weather_desc, secondaryTextColor)
+        views.setTextColor(R.id.tv_todo_bottom, primaryTextColor)
         views.setTextColor(R.id.tv_signature, sigTextColor)
 
         val openIntent = Intent(context, MainActivity::class.java)
