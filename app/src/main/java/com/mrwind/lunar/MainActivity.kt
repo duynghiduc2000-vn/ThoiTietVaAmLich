@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -130,7 +129,7 @@ class MainActivity : ComponentActivity() {
 
             MaterialTheme(colorScheme = colorScheme) {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     LunarWeatherScreen(
@@ -196,10 +195,10 @@ private fun LunarWeatherScreen(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .verticalScroll(scrollState)
-            .padding(horizontal = 14.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 14.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Column {
             Text(
@@ -215,14 +214,14 @@ private fun LunarWeatherScreen(
             )
         }
 
-        // 1. Khung Xem trước widget
+        // 1. Khung Xem trước widget (đã thu gọn khoảng cách)
         SectionCard(cardBg = cardBg) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Xem trước widget",
                         fontSize = 16.sp,
@@ -230,11 +229,12 @@ private fun LunarWeatherScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Mô phỏng nhanh màu nền, chữ và lớp hiệu ứng thời tiết",
+                        text = "Mô phỏng nhanh màu nền, chữ và hiệu ứng thời tiết",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                     )
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 OutlinedButton(
                     onClick = {
                         val nextSize = if (config.widgetSize == "4x2") "4x4" else "4x2"
@@ -245,7 +245,7 @@ private fun LunarWeatherScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             WidgetPreviewBox(
                 config = config,
@@ -722,7 +722,7 @@ private fun SectionCard(
         colors = CardDefaults.cardColors(containerColor = cardBg),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
             content()
         }
     }
@@ -736,7 +736,7 @@ private fun WidgetPreviewBox(
     tick: Int
 ) {
     val is4x4 = config.widgetSize == "4x4"
-    val boxHeight = if (is4x4) 240.dp else 132.dp
+    val boxHeight = if (is4x4) 176.dp else 112.dp
 
     val cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"))
     val solarText = LunarCalendar.formatSolarLine(cal)
@@ -759,28 +759,29 @@ private fun WidgetPreviewBox(
 
     val textColor = if (config.widgetStyle == "FROSTED_LIGHT") Color(0xFF111827) else Color.White
     val subTextColor = if (config.widgetStyle == "FROSTED_LIGHT") Color(0xFF374151) else Color(0xFFDCE2EC)
+    val emojiPrefix = if (config.showWeatherEffect) "${WidgetRenderer.weatherEmoji(config.weatherDescDisplay)} " else ""
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(boxHeight)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(18.dp))
             .background(bgBrush)
             .border(
                 width = 1.dp,
                 color = if (config.widgetStyle == "FROSTED_LIGHT") Color(0x88000000) else Color(0x33FFFFFF),
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(18.dp)
             )
-            .padding(14.dp)
+            .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 18.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             Column(
-                modifier = Modifier.weight(1.3f),
-                verticalArrangement = Arrangement.Center
+                modifier = Modifier.weight(1.35f),
+                verticalArrangement = Arrangement.Top
             ) {
                 Text(
                     text = solarText,
@@ -790,7 +791,7 @@ private fun WidgetPreviewBox(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(1.dp))
                 Text(
                     text = line2Text,
                     fontSize = config.lunarFontSizeSp.sp,
@@ -798,10 +799,10 @@ private fun WidgetPreviewBox(
                     maxLines = if (is4x4) 2 else 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = clockText,
-                    fontSize = if (config.showClockSeconds) 28.sp else 32.sp,
+                    fontSize = if (config.showClockSeconds) 26.sp else 30.sp,
                     fontWeight = FontWeight.Bold,
                     color = textColor,
                     maxLines = 1
@@ -809,17 +810,18 @@ private fun WidgetPreviewBox(
             }
 
             Column(
-                modifier = Modifier.weight(0.8f),
+                modifier = Modifier.weight(0.85f),
                 horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Top
             ) {
                 Text(
-                    text = config.tempDisplay,
-                    fontSize = 20.sp,
+                    text = "$emojiPrefix${config.tempDisplay}",
+                    fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
-                    color = textColor
+                    color = textColor,
+                    maxLines = 1
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = config.locationName.ifBlank { "Nghị Đức" },
                     fontSize = 12.sp,
@@ -838,7 +840,7 @@ private fun WidgetPreviewBox(
                     )
                 }
                 if (config.signature.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(3.dp))
                     Text(
                         text = config.signature,
                         fontSize = 11.sp,
