@@ -83,7 +83,7 @@ object WidgetRenderer {
             val minuteIndex = (System.currentTimeMillis() / 60_000L).toInt()
             val idx = Math.floorMod(minuteIndex, config.todos.size)
             val todo = config.todos[idx]
-            "${todo.time} •${todo.title}"
+            "${todo.time} • ${todo.title}"
         } else {
             ""
         }
