@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.view.Gravity
 import android.widget.RemoteViews
 import com.mrwind.lunar.MainActivity
 import com.mrwind.lunar.R
@@ -26,6 +27,28 @@ object WidgetRenderer {
             "PEACH_ORANGE" -> Color.parseColor("#C2410C")
             "PINK_ROSE" -> Color.parseColor("#BE185D")
             else -> Color.parseColor("#252836")
+        }
+    }
+
+    fun weatherIconRes(desc: String): Int {
+        val lower = desc.lowercase()
+        return when {
+            "mưa" in lower || "rào" in lower || "phùn" in lower -> android.R.drawable.ic_menu_compass
+            "mây" in lower || "sương" in lower -> android.R.drawable.ic_menu_view
+            "giông" in lower || "bão" in lower -> android.R.drawable.ic_dialog_alert
+            else -> android.R.drawable.ic_menu_day
+        }
+    }
+
+    fun weatherEmoji(desc: String): String {
+        val lower = desc.lowercase()
+        return when {
+            "giông" in lower || "bão" in lower -> "⛈️"
+            "mưa" in lower || "rào" in lower || "phùn" in lower -> "🌧️"
+            "sương" in lower -> "🌫️"
+            "nhiều mây" in lower -> "☁️"
+            "mây" in lower -> "⛅"
+            else -> "☀️"
         }
     }
 
@@ -52,12 +75,11 @@ object WidgetRenderer {
         val solarText = LunarCalendar.formatSolarLine(cal)
         val lunarText = LunarCalendar.formatLunarLine(cal)
 
-        // Nếu có việc cần làm -> luân phiên hiển thị cách nhau 1 phút
         val line2Text = if (config.todos.isNotEmpty()) {
             val minuteIndex = (System.currentTimeMillis() / 60_000L).toInt()
             val idx = Math.floorMod(minuteIndex, config.todos.size)
             val todo = config.todos[idx]
-            "Việc (${idx + 1}/${config.todos.size}) • ${todo.time}: ${todo.title}"
+            "Việc (${idx + 1}/${config.todos.size}) • ${todo.time}:${todo.title}"
         } else {
             lunarText
         }
@@ -68,9 +90,19 @@ object WidgetRenderer {
 
         views.setTextViewText(R.id.tv_solar_date, solarText)
         views.setTextViewText(R.id.tv_lunar_or_todo, line2Text)
-        views.setTextViewTextSize(R.id.tv_lunar_or_todo, android.util.TypedValue.COMPLEX_UNIT_SP, config.lunarFontSizeSp)
+        views.setTextViewTextSize(
+            R.id.tv_lunar_or_todo,
+            android.util.TypedValue.COMPLEX_UNIT_SP,
+            config.lunarFontSizeSp
+        )
 
-        views.setTextViewText(R.id.tv_temp, config.tempDisplay)
+        val iconText = if (config.showWeatherEffect) "${weatherEmoji(config.weatherDescDisplay)} " else ""
+        views.setTextViewText(R.id.tv_temp, "$iconText${config.tempDisplay}")
+        views.setImageViewResource(R.id.iv_weather_icon, weatherIconRes(config.weatherDescDisplay))
+        views.setViewVisibility(
+            R.id.iv_weather_icon,
+            if (config.showWeatherEffect) android.view.View.VISIBLE else android.view.View.GONE
+        )
         views.setTextViewText(R.id.tv_location, config.locationName.ifBlank { "Nghị Đức" })
         views.setTextViewText(R.id.tv_weather_desc, if (config.showWeatherEffect) config.weatherDescDisplay else "")
 
@@ -81,7 +113,6 @@ object WidgetRenderer {
             views.setViewVisibility(R.id.tv_signature, android.view.View.GONE)
         }
 
-        // Phong cách hiển thị Widget
         val isLightFrost = config.widgetStyle == "FROSTED_LIGHT"
         val primaryTextColor = if (isLightFrost) Color.parseColor("#111827") else Color.WHITE
         val secondaryTextColor = if (isLightFrost) Color.parseColor("#374151") else Color.parseColor("#DCE2EC")
@@ -111,7 +142,6 @@ object WidgetRenderer {
         views.setTextColor(R.id.tv_weather_desc, secondaryTextColor)
         views.setTextColor(R.id.tv_signature, sigTextColor)
 
-        // Nhấn vào widget mở app
         val openIntent = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             context,
