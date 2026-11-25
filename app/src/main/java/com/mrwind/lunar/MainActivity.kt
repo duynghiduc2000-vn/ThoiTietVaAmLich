@@ -167,23 +167,53 @@ private fun LunarWeatherScreen(
         }
     }
 
+    // Tự động cập nhật vị trí và tên địa điểm khi mở app
+    LaunchedEffect(Unit) {
+        val loc = getLastKnownCoords(context)
+        if (loc != null) {
+            val latStr = String.format(Locale.US, "%.4f", loc.first)
+            val lonStr = String.format(Locale.US, "%.4f", loc.second)
+            val resolvedName = WeatherFetcher.reverseGeocode(context, loc.first, loc.second)
+            val weather = WeatherFetcher.fetchWeather(latStr, lonStr)
+            val updated = config.copy(
+                latitude = latStr,
+                longitude = lonStr,
+                locationName = resolvedName ?: config.locationName,
+                tempDisplay = weather?.tempText ?: config.tempDisplay,
+                weatherDescDisplay = weather?.descText ?: config.weatherDescDisplay
+            )
+            onConfigChange(updated)
+            WidgetRenderer.updateAllWidgets(context)
+        }
+    }
+
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { perms ->
         val granted = perms[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
             perms[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         if (granted) {
-            val loc = getLastKnownCoords(context)
-            if (loc != null) {
-                onConfigChange(
-                    config.copy(
-                        latitude = String.format(Locale.US, "%.4f", loc.first),
-                        longitude = String.format(Locale.US, "%.4f", loc.second)
+            scope.launch {
+                val loc = getLastKnownCoords(context)
+                if (loc != null) {
+                    val latStr = String.format(Locale.US, "%.4f", loc.first)
+                    val lonStr = String.format(Locale.US, "%.4f", loc.second)
+                    val resolvedName = WeatherFetcher.reverseGeocode(context, loc.first, loc.second)
+                    onConfigChange(
+                        config.copy(
+                            latitude = latStr,
+                            longitude = lonStr,
+                            locationName = resolvedName ?: config.locationName
+                        )
                     )
-                )
-                Toast.makeText(context, "Đã cập nhật tọa độ GPS", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(context, "Không lấy được GPS, hãy bật Vị trí", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        "Đã cập nhật vị trí: ${resolvedName ?: "$latStr, $lonStr"}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(context, "Không lấy được GPS, hãy bật Vị trí", Toast.LENGTH_SHORT).show()
+                }
             }
         } else {
             Toast.makeText(context, "Bạn chưa cấp quyền Vị trí", Toast.LENGTH_SHORT).show()
@@ -356,12 +386,45 @@ private fun LunarWeatherScreen(
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = {
-                    locationPermissionLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    val hasPerm = ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+
+                    if (hasPerm) {
+                        scope.launch {
+                            val loc = getLastKnownCoords(context)
+                            if (loc != null) {
+                                val latStr = String.format(Locale.US, "%.4f", loc.first)
+                                val lonStr = String.format(Locale.US, "%.4f", loc.second)
+                                val resolvedName = WeatherFetcher.reverseGeocode(context, loc.first, loc.second)
+                                onConfigChange(
+                                    config.copy(
+                                        latitude = latStr,
+                                        longitude = lonStr,
+                                        locationName = resolvedName ?: config.locationName
+                                    )
+                                )
+                                Toast.makeText(
+                                    context,
+                                    "Đã cập nhật vị trí: ${resolvedName ?: "$latStr, $lonStr"}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Toast.makeText(context, "Không lấy được GPS, hãy bật Vị trí", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } else {
+                        locationPermissionLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
                         )
-                    )
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
