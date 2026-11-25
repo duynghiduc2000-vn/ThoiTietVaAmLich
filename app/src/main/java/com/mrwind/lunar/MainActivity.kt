@@ -1,169 +1,163 @@
-@Composable
-private fun WidgetPreviewBox(
-    config: AppConfig,
-    clockText: String,
-    accentColor: Color,
-    tick: Int
-) {
-    val is4x4 = config.widgetSize == "4x4"
-    val boxHeight = if (is4x4) 172.dp else 118.dp
+package com.mrwind.lunar.widget
 
-    val cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"))
-    val solarText = LunarCalendar.formatSolarLine(cal)
-    val lunarText = LunarCalendar.formatLunarLine(cal)
+import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.graphics.Color
+import android.util.TypedValue
+import android.view.View
+import android.widget.RemoteViews
+import com.mrwind.lunar.MainActivity
+import com.mrwind.lunar.R
+import com.mrwind.lunar.data.AppConfig
+import com.mrwind.lunar.data.AppPrefs
+import com.mrwind.lunar.data.LunarCalendar
+import java.util.Calendar
+import java.util.TimeZone
 
-    val todoText = if (config.todos.isNotEmpty()) {
-        val idx = ((tick / 60) % config.todos.size)
-        val item = config.todos[idx]
-        "${item.time} • ${item.title}"
-    } else {
-        ""
+object WidgetRenderer {
+
+    fun colorHexForTheme(themeKey: String): Int {
+        return when (themeKey) {
+            "SKY_LIGHT" -> Color.parseColor("#1D4ED8")
+            "MINT_LIGHT" -> Color.parseColor("#0F766E")
+            "LEAF_GREEN" -> Color.parseColor("#15803D")
+            "SUN_YELLOW" -> Color.parseColor("#B45309")
+            "PEACH_ORANGE" -> Color.parseColor("#C2410C")
+            "PINK_ROSE" -> Color.parseColor("#BE185D")
+            else -> Color.parseColor("#252836")
+        }
     }
 
-    val bgBrush = when (config.widgetStyle) {
-        "TRANSPARENT" -> Brush.linearGradient(listOf(Color(0x18FFFFFF), Color(0x08FFFFFF)))
-        "FROSTED_LIGHT" -> Brush.linearGradient(listOf(Color(0xE6FFFFFF), Color(0xCCB4C2D4)))
-        "THEME_COLOR" -> Brush.linearGradient(listOf(accentColor.copy(alpha = 0.85f), accentColor.copy(alpha = 0.65f)))
-        else -> Brush.linearGradient(listOf(Color(0xCC242632), Color(0xD915161D)))
+    fun weatherIconRes(desc: String): Int {
+        val lower = desc.lowercase()
+        return when {
+            "mưa" in lower || "rào" in lower || "phùn" in lower -> android.R.drawable.ic_menu_compass
+            "mây" in lower || "sương" in lower -> android.R.drawable.ic_menu_view
+            "giông" in lower || "bão" in lower -> android.R.drawable.ic_dialog_alert
+            else -> android.R.drawable.ic_menu_day
+        }
     }
 
-    val textColor = if (config.widgetStyle == "FROSTED_LIGHT") Color(0xFF111827) else Color.White
-    val subTextColor = if (config.widgetStyle == "FROSTED_LIGHT") Color(0xFF374151) else Color(0xFFDCE2EC)
-    val emojiPrefix = if (config.showWeatherEffect) "${WidgetRenderer.weatherEmoji(config.weatherDescDisplay)} " else ""
+    fun weatherEmoji(desc: String): String {
+        val lower = desc.lowercase()
+        return when {
+            "giông" in lower || "bão" in lower -> "⛈️"
+            "mưa" in lower || "rào" in lower || "phùn" in lower -> "🌧️"
+            "sương" in lower -> "🌫️"
+            "nhiều mây" in lower -> "☁️"
+            "mây" in lower -> "⛅"
+            else -> "☀️"
+        }
+    }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(boxHeight)
-            .clip(RoundedCornerShape(18.dp))
-            .background(bgBrush)
-            .border(
-                width = 1.dp,
-                color = if (config.widgetStyle == "FROSTED_LIGHT") Color(0x88000000) else Color(0x33FFFFFF),
-                shape = RoundedCornerShape(18.dp)
-            )
-            .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 14.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.Top
-        ) {
-            // Hàng 1: Thứ + Âm lịch (trái) & Nhiệt độ (phải)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column(
-                    modifier = Modifier.weight(1.35f),
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    Text(
-                        text = solarText,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.SansSerif,
-                        color = textColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(1.dp))
-                    Text(
-                        text = lunarText,
-                        fontSize = config.lunarFontSizeSp.sp,
-                        fontFamily = FontFamily.SansSerif,
-                        color = subTextColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+    fun updateAllWidgets(context: Context) {
+        val config = AppPrefs.loadConfig(context)
+        val mgr = AppWidgetManager.getInstance(context)
 
-                Text(
-                    text = "$emojiPrefix${config.tempDisplay}",
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.SansSerif,
-                    color = textColor,
-                    maxLines = 1,
-                    modifier = Modifier.weight(0.85f)
-                )
+        val ids4x2 = mgr.getAppWidgetIds(ComponentName(context, LunarWeatherWidget4x2::class.java))
+        for (id in ids4x2) {
+            mgr.updateAppWidget(id, buildRemoteViews(context, config, is4x4 = false))
+        }
+
+        val ids4x4 = mgr.getAppWidgetIds(ComponentName(context, LunarWeatherWidget4x4::class.java))
+        for (id in ids4x4) {
+            mgr.updateAppWidget(id, buildRemoteViews(context, config, is4x4 = true))
+        }
+    }
+
+    fun buildRemoteViews(context: Context, config: AppConfig, is4x4: Boolean): RemoteViews {
+        val layoutId = if (is4x4) R.layout.widget_layout_4x4 else R.layout.widget_layout_4x2
+        val views = RemoteViews(context.packageName, layoutId)
+
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"))
+        val solarText = LunarCalendar.formatSolarLine(cal)
+        val lunarText = LunarCalendar.formatLunarLine(cal)
+
+        views.setTextViewText(R.id.tv_lunar_line, lunarText)
+        views.setTextViewTextSize(R.id.tv_lunar_line, TypedValue.COMPLEX_UNIT_SP, config.lunarFontSizeSp)
+
+        val todoText = if (config.todos.isNotEmpty()) {
+            val minuteIndex = (System.currentTimeMillis() / 60_000L).toInt()
+            val idx = Math.floorMod(minuteIndex, config.todos.size)
+            val todo = config.todos[idx]
+            "${todo.time} • ${todo.title}"
+        } else {
+            ""
+        }
+
+        if (todoText.isNotBlank()) {
+            views.setViewVisibility(R.id.tv_todo_bottom, View.VISIBLE)
+            views.setTextViewText(R.id.tv_todo_bottom, todoText)
+        } else {
+            views.setViewVisibility(R.id.tv_todo_bottom, View.GONE)
+        }
+
+        val clockFormat = if (config.showClockSeconds) "HH:mm:ss" else "HH:mm"
+        views.setCharSequence(R.id.clock_main, "setFormat24Hour", clockFormat)
+        views.setCharSequence(R.id.clock_main, "setFormat12Hour", clockFormat)
+
+        views.setTextViewText(R.id.tv_solar_date, solarText)
+
+        val iconText = if (config.showWeatherEffect) "${weatherEmoji(config.weatherDescDisplay)} " else ""
+        views.setTextViewText(R.id.tv_temp, "$iconText${config.tempDisplay}")
+        views.setImageViewResource(R.id.iv_weather_icon, weatherIconRes(config.weatherDescDisplay))
+        views.setViewVisibility(
+            R.id.iv_weather_icon,
+            if (config.showWeatherEffect) View.VISIBLE else View.GONE
+        )
+        views.setTextViewText(R.id.tv_location, config.locationName.ifBlank { "Nghị Đức" })
+        views.setTextViewText(R.id.tv_weather_desc, if (config.showWeatherEffect) config.weatherDescDisplay else "")
+
+        if (config.signature.isNotBlank()) {
+            views.setViewVisibility(R.id.tv_signature, View.VISIBLE)
+            views.setTextViewText(R.id.tv_signature, config.signature)
+            views.setTextViewTextSize(R.id.tv_signature, TypedValue.COMPLEX_UNIT_SP, 12f)
+        } else {
+            views.setViewVisibility(R.id.tv_signature, View.GONE)
+        }
+
+        val isLightFrost = config.widgetStyle == "FROSTED_LIGHT"
+        val primaryTextColor = if (isLightFrost) Color.parseColor("#111827") else Color.WHITE
+        val secondaryTextColor = if (isLightFrost) Color.parseColor("#374151") else Color.parseColor("#DCE2EC")
+        val sigTextColor = if (isLightFrost) Color.parseColor("#374151") else Color.parseColor("#E2E8F0")
+
+        when (config.widgetStyle) {
+            "TRANSPARENT" -> {
+                views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.bg_widget_transparent)
             }
-
-            Spacer(modifier = Modifier.height(3.dp))
-
-            // Hàng 2: Đồng hồ (trái) ngang hàng Tên địa điểm + Mô tả thời tiết (phải)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = clockText,
-                    fontSize = if (config.showClockSeconds) 26.sp else 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.SansSerif,
-                    color = textColor,
-                    maxLines = 1,
-                    modifier = Modifier.weight(1.25f)
-                )
-
-                Column(
-                    modifier = Modifier.weight(0.95f),
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = config.locationName.ifBlank { "Nghị Đức" },
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.SansSerif,
-                        color = textColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    if (config.showWeatherEffect) {
-                        Text(
-                            text = config.weatherDescDisplay,
-                            fontSize = 11.sp,
-                            fontFamily = FontFamily.SansSerif,
-                            color = subTextColor,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
+            "FROSTED_LIGHT" -> {
+                views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.bg_widget_frosted_light)
             }
-
-            if (todoText.isNotBlank() || config.signature.isNotBlank()) {
-                Spacer(modifier = Modifier.height(5.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = todoText,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        fontFamily = FontFamily.SansSerif,
-                        color = textColor,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1.35f)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = config.signature,
-                        fontSize = 12.sp,
-                        fontStyle = FontStyle.Italic,
-                        fontFamily = FontFamily.SansSerif,
-                        color = subTextColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(0.85f)
-                    )
-                }
+            "THEME_COLOR" -> {
+                views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.bg_widget_theme)
+                views.setInt(R.id.widget_root, "setColorFilter", colorHexForTheme(config.colorThemeKey))
+            }
+            else -> {
+                views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.bg_widget_liquid_dark)
             }
         }
+
+        views.setTextColor(R.id.clock_main, primaryTextColor)
+        views.setTextColor(R.id.tv_solar_date, primaryTextColor)
+        views.setTextColor(R.id.tv_lunar_line, secondaryTextColor)
+        views.setTextColor(R.id.tv_temp, primaryTextColor)
+        views.setTextColor(R.id.tv_location, primaryTextColor)
+        views.setTextColor(R.id.tv_weather_desc, secondaryTextColor)
+        views.setTextColor(R.id.tv_todo_bottom, primaryTextColor)
+        views.setTextColor(R.id.tv_signature, sigTextColor)
+
+        val openIntent = Intent(context, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            if (is4x4) 44 else 42,
+            openIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
+
+        return views
     }
 }
