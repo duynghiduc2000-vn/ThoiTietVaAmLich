@@ -7,7 +7,7 @@
     android:paddingStart="16dp"
     android:paddingEnd="16dp"
     android:paddingTop="12dp"
-    android:paddingBottom="36dp">
+    android:paddingBottom="24dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,7 +15,7 @@
         android:gravity="top"
         android:orientation="vertical">
 
-        <!-- Phần trên: Đồng hồ + Thời tiết -->
+        <!-- Khối trên -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -26,7 +26,7 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1.2"
+                android:layout_weight="1.25"
                 android:orientation="vertical">
 
                 <TextClock
@@ -34,11 +34,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
+                    android:fontFamily="sans-serif"
                     android:format12Hour="HH:mm"
                     android:format24Hour="HH:mm"
                     android:maxLines="1"
                     android:textColor="#FFFFFF"
-                    android:textSize="40sp"
+                    android:textSize="38sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -46,16 +47,29 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif"
                     android:text="Thứ Tư • 25/11/2026"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_lunar_line"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif"
+                    android:maxLines="2"
+                    android:text="Âm: 17/10 • Ngày Quý Mão"
+                    android:textColor="#F0F4FA"
+                    android:textSize="15sp" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.8"
+                android:layout_weight="0.85"
                 android:gravity="end|top"
                 android:orientation="vertical">
 
@@ -67,9 +81,9 @@
 
                     <ImageView
                         android:id="@+id/iv_weather_icon"
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:layout_marginEnd="6dp"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginEnd="5dp"
                         android:contentDescription="Thời tiết"
                         android:src="@android:drawable/ic_menu_day" />
 
@@ -77,6 +91,7 @@
                         android:id="@+id/tv_temp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
                         android:text="28°C"
                         android:textColor="#FFFFFF"
                         android:textSize="24sp"
@@ -88,6 +103,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif"
                     android:text="Nghị Đức"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
@@ -97,39 +113,46 @@
                     android:id="@+id/tv_weather_desc"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
                     android:text="Nhiều mây"
                     android:textColor="#CFD5E0"
                     android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Phần dưới: Âm lịch / Việc cần làm + Chữ ký -->
+        <!-- Hàng dưới cùng: Việc cần làm (trái) ngang hàng Chữ ký (phải) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tv_lunar_or_todo"
-                android:layout_width="match_parent"
+                android:id="@+id/tv_todo_bottom"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1.25"
                 android:ellipsize="end"
+                android:fontFamily="sans-serif"
                 android:maxLines="2"
-                android:text="Âm: 17/10 • Ngày Quý Mão • Bính Ngọ"
-                android:textColor="#F0F4FA"
-                android:textSize="15sp" />
+                android:text=""
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tv_signature"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="0.85"
                 android:ellipsize="end"
+                android:fontFamily="sans-serif"
                 android:gravity="end"
                 android:maxLines="1"
                 android:text=""
-                android:textColor="#B8C2D4"
+                android:textColor="#E2E8F0"
                 android:textSize="12sp"
                 android:textStyle="italic" />
         </LinearLayout>
