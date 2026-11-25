@@ -1,10 +1,14 @@
 package com.mrwind.lunar.data
 
+import android.content.Context
+import android.location.Geocoder
+import android.os.Build
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 
 data class WeatherResult(
     val tempText: String,
@@ -46,6 +50,46 @@ object WeatherFetcher {
             null
         }
     }
+
+    @Suppress("DEPRECATION")
+    suspend fun reverseGeocode(context: Context, lat: Double, lon: Double): String? =
+        withContext(Dispatchers.IO) {
+            return@withContext try {
+                val geocoder = Geocoder(context, Locale("vi", "VN"))
+                val addr = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    var result: android.location.Address? = null
+                    geocoder.getFromLocation(lat, lon, 1) { list ->
+                        result = list.firstOrNull()
+                    }
+                    var waited = 0
+                    while (result == null && waited < 1500) {
+                        kotlinx.coroutines.delay(50)
+                        waited += 50
+                    }
+                    result
+                } else {
+                    geocoder.getFromLocation(lat, lon, 1)?.firstOrNull()
+                }
+
+                addr?.let {
+                    val parts = listOfNotNull(
+                        it.subLocality?.takeIf { s -> s.isNotBlank() },
+                        it.locality?.takeIf { s -> s.isNotBlank() },
+                        it.subAdminArea?.takeIf { s -> s.isNotBlank() },
+                        it.adminArea?.takeIf { s -> s.isNotBlank() }
+                    ).distinct()
+
+                    when {
+                        parts.size >= 2 -> "${parts[0]},${parts[1]}"
+                        parts.isNotEmpty() -> parts[0]
+                        !it.featureName.isNullOrBlank() -> it.featureName
+                        else -> null
+                    }
+                }
+            } catch (_: Exception) {
+                null
+            }
+        }
 
     fun mapWeatherCode(code: Int): String {
         return when (code) {
